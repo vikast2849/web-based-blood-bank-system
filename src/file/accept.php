@@ -9,7 +9,7 @@ if (!isset($_SESSION['hid'])) {
     redirect('../login.php');
 }
 
-$reqid  = (int)($_GET['reqid'] ?? 0);
+$reqid  = (int)($_POST['reqid'] ?? $_GET['reqid'] ?? 0);
 $hid    = (int)$_SESSION['hid'];
 $status = 'Accepted';
 

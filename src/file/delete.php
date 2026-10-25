@@ -9,7 +9,7 @@ if (!isset($_SESSION['hid'])) {
     redirect('../login.php');
 }
 
-$bid = (int)($_GET['bid'] ?? 0);
+$bid = (int)($_POST['bid'] ?? $_GET['bid'] ?? 0);
 $hid = (int)$_SESSION['hid'];
 
 // Only the owning hospital can delete its own sample.

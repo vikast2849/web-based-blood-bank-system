@@ -9,7 +9,7 @@ if (!isset($_SESSION['rid'])) {
     redirect('../login.php');
 }
 
-$reqid = (int)($_GET['reqid'] ?? 0);
+$reqid = (int)($_POST['reqid'] ?? $_GET['reqid'] ?? 0);
 $rid   = (int)$_SESSION['rid'];
 
 // Only the receiver who made the request can cancel it.

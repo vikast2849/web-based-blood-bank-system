@@ -2,7 +2,6 @@
     session_start();
     session_unset();
     session_destroy();
-    $msg="You have logged out.";
-    header( "location:index.php?msg=".urlencode($msg) );
+    header("Location: login.php?msg=" . urlencode("You have logged out."));
     exit;
 ?>

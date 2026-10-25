@@ -5,10 +5,13 @@
 // environment variables (DB_HOST, DB_USER, DB_PASS, DB_NAME) when needed,
 // e.g. in Docker.
 // ---------------------------------------------------------------
-$servername = getenv('DB_HOST') ?: 'localhost';
-$username   = getenv('DB_USER') ?: 'root';
-$password   = getenv('DB_PASS') !== false ? getenv('DB_PASS') : '';
-$dbname     = getenv('DB_NAME') ?: 'bloodbank';
+// Optional local override file (git-ignored): src/file/config.local.php
+// returns ['host'=>..., 'user'=>..., 'pass'=>..., 'name'=>...]
+$local = file_exists(__DIR__ . '/config.local.php') ? include __DIR__ . '/config.local.php' : [];
+$servername = $local['host'] ?? (getenv('DB_HOST') ?: 'localhost');
+$username   = $local['user'] ?? (getenv('DB_USER') ?: 'root');
+$password   = $local['pass'] ?? (getenv('DB_PASS') !== false ? getenv('DB_PASS') : '');
+$dbname     = $local['name'] ?? (getenv('DB_NAME') ?: 'bloodbank');
 
 // Classic error handling (return false) on every PHP version.
 mysqli_report(MYSQLI_REPORT_OFF);
@@ -21,6 +24,17 @@ $conn->set_charset('utf8mb4');
 
 /** Valid blood groups. */
 $BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+
+/** Escape for HTML output. */
+function h($v) {
+    return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
+}
+
+/** Coloured status badge for a request status. */
+function status_badge($s) {
+    $c = $s === 'Accepted' ? 'success' : ($s === 'Rejected' ? 'danger' : 'warning');
+    return '<span class="status-badge status-' . $c . '">' . h($s) . '</span>';
+}
 
 /** Redirect and stop. */
 function redirect($url) {
