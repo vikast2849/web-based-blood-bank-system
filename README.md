@@ -6,7 +6,7 @@
 [![Bootstrap](https://img.shields.io/badge/UI-Bootstrap%204%20Modern%20Crimson-7952B3?logo=bootstrap&logoColor=white)](https://getbootstrap.com/)
 [![Tests](https://img.shields.io/badge/Tests-10%2F10%20PASS-16A34A?logo=checkmarx&logoColor=white)](#automated-test-suite--verification)
 
-> **Live Production Demo:** [https://bloodbank.harishp.shop/](https://bloodbank.harishp.shop/)  
+> **Live Production Demo:** [https://vikasst.shop/](https://vikasst.shop/)  
 > *(Root automatically opens the Login portal with zero PHP warnings)*
 
 A secure, responsive PHP & MySQL web application designed to connect **hospitals** and **blood receivers**. Hospitals publish available blood stocks, monitor inventory, and accept or reject patient requests. Receivers search compatible blood groups in real time, view hospital contact information, and track request status.
@@ -17,17 +17,17 @@ A secure, responsive PHP & MySQL web application designed to connect **hospitals
 
 ## Live Deployment & Cloud Architecture
 
-The application is deployed on an **AWS EC2 Amazon Linux 2023** instance alongside an existing web portfolio without conflict:
+The application is deployed on an **AWS EC2 Amazon Linux 2023** instance with automated startup and SSL certificates:
 
-- **Live URL:** [https://bloodbank.harishp.shop/](https://bloodbank.harishp.shop/) (HTTP: [http://bloodbank.harishp.shop/](http://bloodbank.harishp.shop/))
+- **Live URL:** [https://vikasst.shop/](https://vikasst.shop/) (also available at [https://www.vikasst.shop/](https://www.vikasst.shop/))
 - **Web Server:** Nginx 1.30.5 reverse proxying to PHP-FPM 8.3 (`unix:/run/php-fpm/www.sock`).
 - **Database Engine:** MariaDB 10.5 on `localhost` with a dedicated, least-privilege `bloodbank` user.
+- **SSL / TLS:** Let's Encrypt certificate managed by Certbot (`/etc/letsencrypt/live/vikasst.shop/fullchain.pem`) with automatic HTTP (port 80) to HTTPS (port 443) redirect.
 - **Security Isolation:** `/var/www/bloodbank/src/file/config.local.php` is strictly denied in Nginx (`return 404`). Hidden dotfiles (`.git`, `.env`) are denied.
-- **DNS Configuration:**
-  - **Type:** `A`
-  - **Name:** `bloodbank` (or `bloodbank.harishp.shop`)
-  - **Value:** `63.178.65.191`
-  - **TTL:** 300 seconds
+- **Server DNS & IP:**
+  - **Domain:** `vikasst.shop` & `www.vikasst.shop`
+  - **Nameservers:** `dns1.bigrock.in` – `dns4.bigrock.in`
+  - **Server IP:** `16.171.110.90` (AWS EC2 AL2023 `eu-north-1`)
 
 ---
 

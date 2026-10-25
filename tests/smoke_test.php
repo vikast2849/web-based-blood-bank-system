@@ -91,7 +91,7 @@ class TestClient {
         }
 
         $parsedHost = parse_url($this->baseUrl, PHP_URL_HOST);
-        $hostHeader = ($parsedHost === '127.0.0.1' || $parsedHost === 'localhost') ? "Host: bloodbank.harishp.shop\r\n" : "";
+        $hostHeader = ($parsedHost === '127.0.0.1' || $parsedHost === 'localhost') ? "Host: vikasst.shop\r\n" : "";
 
         $opts = [
             'http' => [
