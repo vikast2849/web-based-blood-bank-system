@@ -1,15 +1,24 @@
-# Web-Based Blood Bank System
+# Web-Based Blood Bank System: A Web System for Managing Donors, Recipients & Blood Availability Records
 
-[![PHP Version](https://img.shields.io/badge/PHP-8.2-777BB4?logo=php&logoColor=white)](https://www.php.net/)
-[![Database](https://img.shields.io/badge/Database-MySQL%20|%20MariaDB-00758F?logo=mysql&logoColor=white)](https://www.mysql.com/)
-[![Web Server](https://img.shields.io/badge/Server-Apache%202.4-D22128?logo=apache&logoColor=white)](https://httpd.apache.org/)
-[![Docker](https://img.shields.io/badge/Deployment-Docker%20|%20Render-2496ED?logo=docker&logoColor=white)](https://render.com/)
-[![UI Theme](https://img.shields.io/badge/UI-Bootstrap%204%20Modern%20Crimson-7952B3?logo=bootstrap&logoColor=white)](https://getbootstrap.com/)
-[![Tests](https://img.shields.io/badge/Tests-10%2F10%20PASS-16A34A?logo=checkmarx&logoColor=white)](#automated-test-suite--verification)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-bloodbank.vikasst.shop-c62828?style=for-the-badge&logo=googlechrome&logoColor=white)](https://bloodbank.vikasst.shop)
+[![PHP Version](https://img.shields.io/badge/PHP-8.2-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net/)
+[![Database](https://img.shields.io/badge/Database-MySQL%20|%20MariaDB-00758F?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
+[![Web Server](https://img.shields.io/badge/Server-Apache%202.4-D22128?style=for-the-badge&logo=apache&logoColor=white)](https://httpd.apache.org/)
+[![Deployment](https://img.shields.io/badge/Deployed%20on-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://render.com)
+[![Docker](https://img.shields.io/badge/Container-Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![Tests](https://img.shields.io/badge/Tests-10%2F10%20PASS-16A34A?style=for-the-badge&logo=checkmarx&logoColor=white)](#automated-test-suite--verification)
 
-> **Live Production Demo:** [https://bloodbank.vikasst.shop/](https://bloodbank.vikasst.shop/)  
-> **Render Service URL:** [https://web-based-blood-bank.onrender.com/](https://web-based-blood-bank.onrender.com/)  
-> *(Root automatically opens the Login portal with zero PHP warnings)*
+**Department of Computer Science & Engineering**  
+**S.J.M. Institute of Technology (SJMIT), Chitradurga**  
+*Academic Year 2026 - 2027*
+
+🌐 **Production Link:** [https://bloodbank.vikasst.shop](https://bloodbank.vikasst.shop)  
+🚀 **Render Service URL:** [https://web-based-blood-bank.onrender.com](https://web-based-blood-bank.onrender.com)  
+*(Root automatically redirects to the unified login portal with zero PHP warnings)*
+
+---
+
+## 📌 Project Overview
 
 A secure, responsive PHP & MySQL web application designed to connect **hospitals** and **blood receivers**. Hospitals publish available blood stocks, monitor inventory, and accept or reject patient requests. Receivers search compatible blood groups in real time, view hospital contact information, and track request status.
 
