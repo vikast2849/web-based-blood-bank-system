@@ -47,20 +47,34 @@ $envPort = getenv('DB_PORT');
 
 $servername = $local['host'] ?? (!is_placeholder_db_val($envHost) ? $envHost : '127.0.0.1');
 $port       = (int)($local['port'] ?? (!is_placeholder_db_val($envPort) ? $envPort : 3306));
-$username   = $local['user'] ?? (!is_placeholder_db_val($envUser) ? $envUser : 'root');
-$password   = $local['pass'] ?? (!is_placeholder_db_val($envPass) ? $envPass : '');
+$username   = $local['user'] ?? (!is_placeholder_db_val($envUser) ? $envUser : 'bloodbank');
+$password   = $local['pass'] ?? (!is_placeholder_db_val($envPass) ? $envPass : 'bloodbank');
 $dbname     = $local['name'] ?? (!is_placeholder_db_val($envName) ? $envName : 'bloodbank');
 
 // Classic error handling (return false) on every PHP version.
 mysqli_report(MYSQLI_REPORT_OFF);
 
+// Attempt primary connection
 $conn = @new mysqli($servername, $username, $password, $dbname, $port);
 
-// If remote connection failed, fallback to local MariaDB inside container
-if ($conn->connect_error && $servername !== '127.0.0.1' && $servername !== 'localhost') {
-    $fallbackConn = @new mysqli('127.0.0.1', 'root', '', 'bloodbank', 3306);
-    if (!$fallbackConn->connect_error) {
-        $conn = $fallbackConn;
+// If primary connection failed, attempt automatic local fallbacks
+if ($conn->connect_error) {
+    // 1. Try bloodbank / bloodbank on 127.0.0.1
+    $f1 = @new mysqli('127.0.0.1', 'bloodbank', 'bloodbank', 'bloodbank', 3306);
+    if (!$f1->connect_error) {
+        $conn = $f1;
+    } else {
+        // 2. Try root / empty password on 127.0.0.1
+        $f2 = @new mysqli('127.0.0.1', 'root', '', 'bloodbank', 3306);
+        if (!$f2->connect_error) {
+            $conn = $f2;
+        } else {
+            // 3. Try localhost socket with root
+            $f3 = @new mysqli('localhost', 'root', '', 'bloodbank', 3306);
+            if (!$f3->connect_error) {
+                $conn = $f3;
+            }
+        }
     }
 }
 
