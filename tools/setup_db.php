@@ -6,6 +6,7 @@ mysqli_report(MYSQLI_REPORT_OFF);
 $cfgFile = __DIR__ . '/../src/file/config.local.php';
 $local = file_exists($cfgFile) ? include $cfgFile : [];
 $host = $local['host'] ?? (getenv('DB_HOST') ?: 'localhost');
+$port = (int)($local['port'] ?? (getenv('DB_PORT') ?: 3306));
 $user = $local['user'] ?? (getenv('DB_USER') ?: 'root');
 $pass = $local['pass'] ?? (getenv('DB_PASS') !== false ? getenv('DB_PASS') : '');
 $db   = $local['name'] ?? (getenv('DB_NAME') ?: 'bloodbank');
@@ -15,7 +16,7 @@ if (!extension_loaded('mysqli')) {
     exit(1);
 }
 
-$conn = @new mysqli($host, $user, $pass);
+$conn = @new mysqli($host, $user, $pass, '', $port);
 if ($conn->connect_error) {
     fwrite(STDERR, "ERROR: cannot connect to MySQL at $host as '$user': " . $conn->connect_error . "\n");
     fwrite(STDERR, "Start MySQL (XAMPP Control Panel -> MySQL -> Start) and try again.\n");

@@ -5,10 +5,28 @@
 // environment variables (DB_HOST, DB_USER, DB_PASS, DB_NAME) when needed,
 // e.g. in Docker.
 // ---------------------------------------------------------------
-// Optional local override file (git-ignored): src/file/config.local.php
-// returns ['host'=>..., 'user'=>..., 'pass'=>..., 'name'=>...]
+// Load .env file from project root if present
+$envFile = dirname(__DIR__, 2) . '/.env';
+if (file_exists($envFile)) {
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if ($line === '' || strpos($line, '#') === 0 || strpos($line, '=') === false) continue;
+        list($k, $v) = explode('=', $line, 2);
+        $k = trim($k);
+        $v = trim($v, " \t\n\r\0\x0B\"'");
+        if (getenv($k) === false) {
+            putenv("$k=$v");
+            $_ENV[$k] = $v;
+        }
+    }
+}
+
+// Database configuration via environment variables (DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASS)
+// or optional local override file: src/file/config.local.php
 $local = file_exists(__DIR__ . '/config.local.php') ? include __DIR__ . '/config.local.php' : [];
 $servername = $local['host'] ?? (getenv('DB_HOST') ?: 'localhost');
+$port       = (int)($local['port'] ?? (getenv('DB_PORT') ?: 3306));
 $username   = $local['user'] ?? (getenv('DB_USER') ?: 'root');
 $password   = $local['pass'] ?? (getenv('DB_PASS') !== false ? getenv('DB_PASS') : '');
 $dbname     = $local['name'] ?? (getenv('DB_NAME') ?: 'bloodbank');
@@ -16,7 +34,7 @@ $dbname     = $local['name'] ?? (getenv('DB_NAME') ?: 'bloodbank');
 // Classic error handling (return false) on every PHP version.
 mysqli_report(MYSQLI_REPORT_OFF);
 
-$conn = @new mysqli($servername, $username, $password, $dbname);
+$conn = @new mysqli($servername, $username, $password, $dbname, $port);
 if ($conn->connect_error) {
     die('Could not connect to MySQL: ' . htmlspecialchars($conn->connect_error));
 }

@@ -1,12 +1,14 @@
 # Web-Based Blood Bank System
 
-[![PHP Version](https://img.shields.io/badge/PHP-7.4%20|%208.0%20|%208.3-777BB4?logo=php&logoColor=white)](https://www.php.net/)
+[![PHP Version](https://img.shields.io/badge/PHP-8.2-777BB4?logo=php&logoColor=white)](https://www.php.net/)
 [![Database](https://img.shields.io/badge/Database-MySQL%20|%20MariaDB-00758F?logo=mysql&logoColor=white)](https://www.mysql.com/)
-[![Web Server](https://img.shields.io/badge/Server-Nginx%20|%20Apache-009639?logo=nginx&logoColor=white)](https://nginx.org/)
-[![Bootstrap](https://img.shields.io/badge/UI-Bootstrap%204%20Modern%20Crimson-7952B3?logo=bootstrap&logoColor=white)](https://getbootstrap.com/)
+[![Web Server](https://img.shields.io/badge/Server-Apache%202.4-D22128?logo=apache&logoColor=white)](https://httpd.apache.org/)
+[![Docker](https://img.shields.io/badge/Deployment-Docker%20|%20Render-2496ED?logo=docker&logoColor=white)](https://render.com/)
+[![UI Theme](https://img.shields.io/badge/UI-Bootstrap%204%20Modern%20Crimson-7952B3?logo=bootstrap&logoColor=white)](https://getbootstrap.com/)
 [![Tests](https://img.shields.io/badge/Tests-10%2F10%20PASS-16A34A?logo=checkmarx&logoColor=white)](#automated-test-suite--verification)
 
-> **Live Production Demo:** [https://vikasst.shop/](https://vikasst.shop/)  
+> **Live Production Demo:** [https://bloodbank.vikasst.shop/](https://bloodbank.vikasst.shop/)  
+> **Render Service URL:** [https://web-based-blood-bank.onrender.com/](https://web-based-blood-bank.onrender.com/)  
 > *(Root automatically opens the Login portal with zero PHP warnings)*
 
 A secure, responsive PHP & MySQL web application designed to connect **hospitals** and **blood receivers**. Hospitals publish available blood stocks, monitor inventory, and accept or reject patient requests. Receivers search compatible blood groups in real time, view hospital contact information, and track request status.
@@ -15,19 +17,19 @@ A secure, responsive PHP & MySQL web application designed to connect **hospitals
 
 ---
 
-## Live Deployment & Cloud Architecture
+## Live Deployment Architecture (Render + Cloud MySQL)
 
-The application is deployed on an **AWS EC2 Amazon Linux 2023** instance with automated startup and SSL certificates:
+The application is containerized with Docker and deployed on **Render** under the custom subdomain **`bloodbank.vikasst.shop`**:
 
-- **Live URL:** [https://vikasst.shop/](https://vikasst.shop/) (also available at [https://www.vikasst.shop/](https://www.vikasst.shop/))
-- **Web Server:** Nginx 1.30.5 reverse proxying to PHP-FPM 8.3 (`unix:/run/php-fpm/www.sock`).
-- **Database Engine:** MariaDB 10.5 on `localhost` with a dedicated, least-privilege `bloodbank` user.
-- **SSL / TLS:** Let's Encrypt certificate managed by Certbot (`/etc/letsencrypt/live/vikasst.shop/fullchain.pem`) with automatic HTTP (port 80) to HTTPS (port 443) redirect.
-- **Security Isolation:** `/var/www/bloodbank/src/file/config.local.php` is strictly denied in Nginx (`return 404`). Hidden dotfiles (`.git`, `.env`) are denied.
-- **Server DNS & IP:**
-  - **Domain:** `vikasst.shop` & `www.vikasst.shop`
-  - **Nameservers:** `dns1.bigrock.in` – `dns4.bigrock.in`
-  - **Server IP:** `16.171.110.90` (AWS EC2 AL2023 `eu-north-1`)
+- **Public URL:** [https://bloodbank.vikasst.shop/](https://bloodbank.vikasst.shop/)
+- **Render Service Name:** `web-based-blood-bank`
+- **Render Default URL:** `https://web-based-blood-bank.onrender.com/`
+- **Container Runtime:** `php:8.2-apache` with `mysqli`, `pdo`, `pdo_mysql` extensions
+- **Custom DNS Mapping:**
+  - **Subdomain:** `bloodbank.vikasst.shop`
+  - **Type:** `CNAME`
+  - **Target:** `web-based-blood-bank.onrender.com`
+  - **SSL:** Automatic free TLS certificate issued and auto-renewed by Render via Cloudflare / Let's Encrypt
 
 ---
 
@@ -58,57 +60,73 @@ The application is deployed on an **AWS EC2 Amazon Linux 2023** instance with au
 
 ## Tech Stack
 - **Front-End:** HTML5, CSS3, Modern Crimson SaaS Theme, Bootstrap 4, JavaScript, jQuery, Font Awesome
-- **Back-End:** PHP 7.4 / 8.0 / 8.2 / 8.3
-- **Database:** MySQL 5.7+ / MariaDB 10.4+
-- **Server:** Nginx + PHP-FPM / Apache / PHP CLI Built-in Server
-- **Containerization:** Docker & Docker Compose
+- **Back-End:** PHP 8.2 (compatible with 7.4 - 8.3)
+- **Database:** MySQL 5.7+ / MariaDB 10.4+ / Cloud MySQL (Aiven, Railway, TiDB)
+- **Containerization & Hosting:** Docker, Apache 2.4, Render Web Service
 
 ---
 
-## Project Structure
+## Environment Variables
+
+All database credentials and runtime configurations are managed via environment variables. Copy `.env.example` to `.env` for local runs, or configure them in the Render Dashboard under **Environment**:
+
+| Variable | Description | Example / Default | Required in Production |
+|---|---|---|:---:|
+| `DB_HOST` | Hostname of the MySQL server | `mysql.railway.internal` or `...aivencloud.com` | **Yes** |
+| `DB_PORT` | Port of the MySQL server | `3306` | No (defaults to `3306`) |
+| `DB_NAME` | Database name | `bloodbank` | **Yes** |
+| `DB_USER` | Database username | `avnadmin` or `root` | **Yes** |
+| `DB_PASS` | Database user password | `your_secret_password` | **Yes** |
+| `APP_ENV` | Application environment | `production` / `development` | No |
+| `PORT` | Listening port for Apache (set by Render) | `10000` or `80` | Automatic on Render |
+
+---
+
+## Cloud Database Setup (Aiven / Railway / Cloud MySQL)
+
+The pure database schema without sample personal data is located at [`database/schema.sql`](database/schema.sql).
+
+### Step 1: Provision a Free Cloud MySQL Instance
+Create a free database on any cloud MySQL provider:
+- **Aiven for MySQL:** [https://aiven.io/](https://aiven.io/) (Free tier available)
+- **Railway:** [https://railway.app/](https://railway.app/) (One-click MySQL plugin)
+- **TiDB Cloud Serverless:** [https://tidbcloud.com/](https://tidbcloud.com/) (MySQL-compatible free tier)
+
+### Step 2: Import the Schema
+Using your local terminal or phpMyAdmin / MySQL Workbench:
+```bash
+mysql -h <DB_HOST> -P <DB_PORT> -u <DB_USER> -p <DB_NAME> < database/schema.sql
 ```
-web-based-blood-bank-system/
-├── src/                    # Application source code
-│   ├── css/                # Custom CSS styling (style.css with CSS variables)
-│   ├── image/              # Application images & icons
-│   ├── file/               # Backend action handlers & database connection
-│   │   ├── connection.php  # Database connection & security helpers
-│   │   ├── hospitalLogin.php / hospitalReg.php
-│   │   ├── receiverLogin.php / receiverReg.php
-│   │   ├── infoAdd.php / delete.php
-│   │   ├── request.php / cancel.php
-│   │   ├── accept.php / reject.php
-│   │   └── updateprofile.php
-│   ├── abs.php             # Available blood samples & search page
-│   ├── bloodinfo.php       # Hospital stock management page
-│   ├── bloodrequest.php    # Hospital request management page
-│   ├── sentrequest.php     # Receiver sent requests page
-│   ├── info.php            # Compatibility matrix & WHO health guidelines
-│   ├── login.php           # Unified tabbed login portal
-│   ├── register.php        # Unified tabbed registration portal
-│   ├── logout.php          # Session termination
-│   └── index.php           # Entrypoint (redirects to login / dashboard)
-├── database/
-│   └── bloodbank.sql       # Database schema, indices & seed data
-├── deploy/                 # Production deployment scripts
-│   ├── ec2-nginx-setup.sh  # Automated setup for Nginx + PHP-FPM + MariaDB on EC2
-│   └── ec2-setup.sh        # Setup script for Apache
-├── docs/                   # Academic documentation & screenshots
-│   ├── report/             # VTU Mini-Project Report (PDF)
-│   ├── synopsis/           # Project synopsis & abstract
-│   ├── ppt/                # Seminar presentation notes & slide outlines
-│   └── screenshots/        # Desktop & mobile screenshots of the UI
-├── tests/                  # Automated verification
-│   └── smoke_test.php      # End-to-end integration and security test suite
-├── tools/                  # Developer utilities
-│   ├── setup_db.php        # Automated database provisioner and table creator
-│   └── capture_screenshots.py # Headless browser screenshot generator
-├── start.bat               # 1-click Windows launcher (handles MySQL, DB & server)
-├── start.sh                # 1-click macOS/Linux launcher
-├── Dockerfile              # PHP 8 Apache container configuration
-├── docker-compose.yml      # Multi-container orchestration (PHP + MariaDB)
-└── README.md
+
+*(Optional)* If you wish to seed demo accounts for demonstration, also run:
+```bash
+mysql -h <DB_HOST> -P <DB_PORT> -u <DB_USER> -p <DB_NAME> < database/bloodbank.sql
 ```
+
+---
+
+## Deploy to Render Steps
+
+### Method A: Connect Existing GitHub Repository
+1. Log into your [Render Dashboard](https://dashboard.render.com/).
+2. Click **New +** -> **Web Service**.
+3. Connect your repository: `https://github.com/vikast2849/web-based-blood-bank-system`.
+4. Configure the service settings:
+   - **Name:** `web-based-blood-bank`
+   - **Language / Runtime:** `Docker`
+   - **Branch:** `main`
+   - **Plan:** `Free`
+5. In the **Environment Variables** section, add your database credentials:
+   - `DB_HOST`: *(Your Cloud DB Host)*
+   - `DB_PORT`: `3306` *(or custom port)*
+   - `DB_NAME`: `bloodbank`
+   - `DB_USER`: *(Your Cloud DB Username)*
+   - `DB_PASS`: *(Your Cloud DB Password)*
+   - `APP_ENV`: `production`
+6. Click **Create Web Service**.
+7. Once the build finishes and status turns to **Live**, go to **Settings** -> **Custom Domains**:
+   - Add: `bloodbank.vikasst.shop`
+   - Render verifies the existing CNAME record (`bloodbank.vikasst.shop -> web-based-blood-bank.onrender.com`) and automatically provisions the SSL certificate.
 
 ---
 
@@ -120,92 +138,43 @@ Simply **double-click** `start.bat` in the root folder.
 
 The launcher automatically:
 1. Detects PHP in your system `PATH` or at `C:\xampp\php\php.exe`.
-2. Checks whether MySQL daemon is active on port `3306`; if not, starts `C:\xampp\mysql\bin\mysqld.exe` standalone in the background.
-3. Runs `tools\setup_db.php` to verify the `bloodbank` database and import tables/seeds on first run.
+2. Starts the background MySQL daemon if not yet running.
+3. Automatically creates and provisions the database via `tools\setup_db.php`.
 4. Starts the PHP built-in web server on `0.0.0.0:8000`.
-5. Polls for port `8000` to be fully listening, eliminating any *"localhost refused to connect"* race condition.
-6. Automatically opens your default web browser to `http://localhost:8000/`.
+5. Waits for port readiness and opens `http://localhost:8000/` without connection refused errors.
 
 ---
 
-### Option 2 — macOS / Linux (`start.sh`)
-
-Ensure MySQL / MariaDB is running, then execute:
-```bash
-bash start.sh
-```
-The script runs `tools/setup_db.php` to seed the database and serves the app at `http://localhost:8000/`.
-
----
-
-### Option 3 — Manual PHP Built-in Server + MySQL / XAMPP
-
-1. **Start MySQL / MariaDB** (via XAMPP Control Panel or MySQL service).
-2. **Import Database:**
-   ```bash
-   mysql -u root < database/bloodbank.sql
-   ```
-   *(Or run `php tools/setup_db.php`)*.
-3. **Start the PHP Development Server:**
-   ```bash
-   php -S 0.0.0.0:8000 -t src
-   ```
-4. **Open in Browser:**  
-   Navigate to `http://localhost:8000/`.
-
----
-
-### Option 4 — Docker Compose
+### Option 2 — Docker Container
 
 ```bash
-docker compose up --build
+docker build -t blood-bank-system .
+docker run -p 8080:80 --env-file .env blood-bank-system
 ```
-Open `http://localhost:8080/`. The database is automatically provisioned and seeded from `database/bloodbank.sql`.
-
-To stop the containers:
-```bash
-docker compose down -v
-```
-
----
-
-## Demo Accounts
-
-The database comes pre-seeded with sample hospital and receiver accounts for evaluation:
-
-| Role | Email | Seed Password | Note |
-|---|---|---|---|
-| **Hospital** | `gandhi@gmail.com` | `gandhi` | Gandhi Hospital, Delhi |
-| **Hospital** | `unknown@gmail.com` | `unknown` | Unknown Hospital |
-| **Receiver** | `test@gmail.com` | `test` | Lucknow (Blood Group: A+) |
-| **Receiver** | `xyz@gmail.com` | `xyz` | Punjab (Blood Group: AB+) |
-
-> **Automatic Password Upgrade:** Plain-text demo credentials are automatically upgraded to secure bcrypt hashes in the database upon the user's first successful login.
+Access at `http://localhost:8080/`.
 
 ---
 
 ## Automated Test Suite & Verification
 
-The repository includes a comprehensive automated end-to-end smoke test suite in `tests/smoke_test.php`. Run it with:
+The repository includes a comprehensive automated end-to-end smoke test suite in [`tests/smoke_test.php`](tests/smoke_test.php). Run it locally with:
 
 ```bash
 php tests/smoke_test.php
 ```
 
-### Test Results
-
 | Test Suite | Test Case | Status | Details |
 |---|---|:---:|---|
 | **Routing** | Root URL redirects to login.php | **PASS** | Status: 302, Location: login.php |
-| **Pages** | Pages load with 200 OK and no PHP warnings | **PASS** | Checked `login.php`, `register.php`, `abs.php`, `info.php` |
-| **Auth** | Seeded hospital `gandhi@gmail.com` logs in and rehashes password | **PASS** | Plain: `gandhi` -> Hash: `$2y$10$...` |
-| **Auth** | Seeded receiver `test@gmail.com` logs in and rehashes password | **PASS** | Plain: `test` -> Hash: `$2y$10$...` |
-| **Hospital** | Complete lifecycle & profile updates | **PASS** | Registration, login, stats, add/duplicate/delete stock, edit profile (w/ and w/o pass change), logout |
-| **Receiver** | Complete lifecycle & requests | **PASS** | Registration, login, search/filter, request, duplicate reject, cancel, edit profile, logout |
-| **Workflow** | Hospital accepts & rejects requests; Receiver sees status | **PASS** | Accept flow verified; Reject flow verified; Receiver sees updated status in real time |
-| **Security** | Authorization boundary tampering blocked | **PASS** | Receiver URL tampering on `accept.php`, `reject.php`, `delete.php`, and cross-user `cancel.php` strictly rejected |
-| **Security** | SQL injection payload `' OR 1=1 --` fails login | **PASS** | Both hospital and receiver login endpoints reject injection payloads |
-| **Security** | `<script>` in `?msg=` is rendered safely escaped | **PASS** | Output escaped with `htmlspecialchars` preventing XSS |
+| **Pages** | Clean page loads with zero PHP warnings | **PASS** | Checked `login.php`, `register.php`, `abs.php`, `info.php` |
+| **Auth** | Seeded hospital `gandhi@gmail.com` logs in | **PASS** | Authenticates & updates password hash to bcrypt |
+| **Auth** | Seeded receiver `test@gmail.com` logs in | **PASS** | Authenticates & updates password hash to bcrypt |
+| **Hospital** | Complete lifecycle & profile updates | **PASS** | Registration, stock add/delete, profile updates, logout |
+| **Receiver** | Complete lifecycle & requests | **PASS** | Registration, filter, request, duplicate reject, cancel |
+| **Workflow** | Hospital accepts/rejects; Receiver updates | **PASS** | Live status updates reflected immediately |
+| **Security** | Authorization boundary tampering blocked | **PASS** | URL tampering on accept/reject/delete blocked |
+| **Security** | SQL injection payload `' OR 1=1 --` fails | **PASS** | Rejected on both hospital and receiver endpoints |
+| **Security** | `<script>` in `?msg=` rendered escaped | **PASS** | Escaped with `htmlspecialchars` |
 
 ---
 

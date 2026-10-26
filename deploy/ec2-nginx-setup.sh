@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Deploy Blood Bank on Amazon Linux 2023 with Nginx + PHP-FPM + MariaDB.
 # Usage:  sudo bash deploy/ec2-nginx-setup.sh <domain> [letsencrypt-email]
-# Example: sudo bash deploy/ec2-nginx-setup.sh vikasst.shop vikast2849@gmail.com
+# Example: sudo bash deploy/ec2-nginx-setup.sh bloodbank.vikasst.shop me@example.com
 set -euo pipefail
 
 DOMAIN="${1:?Usage: sudo bash deploy/ec2-nginx-setup.sh <domain> [email]}"
