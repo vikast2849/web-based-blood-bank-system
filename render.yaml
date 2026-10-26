@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: web-based-blood-bank
+    name: web-based-blood-bank-system
     runtime: docker
     plan: free
     dockerfilePath: ./Dockerfile

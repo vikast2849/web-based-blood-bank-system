@@ -1,10 +1,10 @@
 # Web-Based Blood Bank System: A Web System for Managing Donors, Recipients & Blood Availability Records
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-bloodbank.vikasst.shop-c62828?style=for-the-badge&logo=googlechrome&logoColor=white)](https://bloodbank.vikasst.shop)
+[![Render Service](https://img.shields.io/badge/Render-web--based--blood--bank--system-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://web-based-blood-bank-system.onrender.com)
 [![PHP Version](https://img.shields.io/badge/PHP-8.2-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net/)
 [![Database](https://img.shields.io/badge/Database-MySQL%20|%20MariaDB-00758F?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Web Server](https://img.shields.io/badge/Server-Apache%202.4-D22128?style=for-the-badge&logo=apache&logoColor=white)](https://httpd.apache.org/)
-[![Deployment](https://img.shields.io/badge/Deployed%20on-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://render.com)
 [![Docker](https://img.shields.io/badge/Container-Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 [![Tests](https://img.shields.io/badge/Tests-10%2F10%20PASS-16A34A?style=for-the-badge&logo=checkmarx&logoColor=white)](#automated-test-suite--verification)
 
@@ -13,7 +13,7 @@
 *Academic Year 2026 - 2027*
 
 🌐 **Production Link:** [https://bloodbank.vikasst.shop](https://bloodbank.vikasst.shop)  
-🚀 **Render Service URL:** [https://web-based-blood-bank.onrender.com](https://web-based-blood-bank.onrender.com)  
+🚀 **Render Direct URL:** [https://web-based-blood-bank-system.onrender.com](https://web-based-blood-bank-system.onrender.com)  
 *(Root automatically redirects to the unified login portal with zero PHP warnings)*
 
 ---
@@ -26,18 +26,18 @@ A secure, responsive PHP & MySQL web application designed to connect **hospitals
 
 ---
 
-## Live Deployment Architecture (Render + Cloud MySQL)
+## Live Deployment Architecture (Render + Embedded & Cloud MariaDB/MySQL)
 
 The application is containerized with Docker and deployed on **Render** under the custom subdomain **`bloodbank.vikasst.shop`**:
 
 - **Public URL:** [https://bloodbank.vikasst.shop/](https://bloodbank.vikasst.shop/)
-- **Render Service Name:** `web-based-blood-bank`
-- **Render Default URL:** `https://web-based-blood-bank.onrender.com/`
-- **Container Runtime:** `php:8.2-apache` with `mysqli`, `pdo`, `pdo_mysql` extensions
+- **Render Service Name:** `web-based-blood-bank-system`
+- **Render Default URL:** `https://web-based-blood-bank-system.onrender.com/`
+- **Container Runtime:** `php:8.2-apache` + MariaDB engine with `mysqli`, `pdo`, `pdo_mysql` extensions
 - **Custom DNS Mapping:**
   - **Subdomain:** `bloodbank.vikasst.shop`
   - **Type:** `CNAME`
-  - **Target:** `web-based-blood-bank.onrender.com`
+  - **Target:** `web-based-blood-bank-system.onrender.com`
   - **SSL:** Automatic free TLS certificate issued and auto-renewed by Render via Cloudflare / Let's Encrypt
 
 ---
@@ -58,58 +58,47 @@ The application is containerized with Docker and deployed on **Render** under th
 - **Request Tracking & Cancellation:** Live status tracking (`Pending`, `Accepted`, `Rejected`) and one-click request cancellation.
 - **Profile Management:** Update personal contact info and preferences.
 
-### Security & Engineering Standards
-- **SQL Injection Prevention:** 100% prepared statements with parameterized queries (`mysqli::prepare`) across all database interactions.
-- **Password Security:** Modern bcrypt hashing (`PASSWORD_DEFAULT`) with automated on-the-fly upgrades for legacy demo credentials.
-- **Cross-Site Scripting (XSS) Prevention:** Output escaping via `htmlspecialchars` across all dynamic tables, forms, and URL parameters (`?msg=`, `?error=`).
-- **Authorization & Ownership Checks:** Strict session role boundaries prevent URL parameter tampering across hospitals and receivers.
-- **PHP 7.4 to 8.x Compatibility:** Zero runtime notices, warnings, or deprecated function calls.
+### Security Hardening
+- **Modern Password Hashing:** Seamless transition from legacy plaintext to secure `bcrypt` hashes on next login.
+- **Prepared Statements (SQLi Prevention):** All queries across both modules utilize parameter binding.
+- **XSS Sanitization:** User-supplied parameters (`msg`, `error`, form fields) are filtered through `htmlspecialchars()`.
+- **Authorization Enforcement:** Strict session ownership checks prevent IDOR on sample deletion and request status updates.
 
 ---
 
-## Tech Stack
-- **Front-End:** HTML5, CSS3, Modern Crimson SaaS Theme, Bootstrap 4, JavaScript, jQuery, Font Awesome
-- **Back-End:** PHP 8.2 (compatible with 7.4 - 8.3)
-- **Database:** MySQL 5.7+ / MariaDB 10.4+ / Cloud MySQL (Aiven, Railway, TiDB)
-- **Containerization & Hosting:** Docker, Apache 2.4, Render Web Service
+## Technical Stack
+
+| Layer | Technology |
+|---|---|
+| **Backend** | PHP 8.2 (compatible with PHP 7.4 - 8.3) |
+| **Web Server** | Apache 2.4 (`mod_rewrite` enabled) |
+| **Database** | MariaDB 10.5+ / MySQL 8.0 (Embedded + Cloud Support) |
+| **Frontend** | HTML5, CSS3, Bootstrap 4.5, jQuery 3.5, FontAwesome 5 |
+| **Fonts & Icons** | Inter (Google Fonts), FontAwesome Icons |
+| **Containerization** | Docker, multi-stage runtime with dynamic `$PORT` entrypoint |
+| **Hosting Platform**| Render (Free Web Service tier) |
+| **DNS & SSL** | Cloudflare Edge TLS / Let's Encrypt |
 
 ---
 
-## Environment Variables
+## Architecture Diagram
 
-All database credentials and runtime configurations are managed via environment variables. Copy `.env.example` to `.env` for local runs, or configure them in the Render Dashboard under **Environment**:
+```mermaid
+flowchart TD
+    User["User / Receiver / Hospital Browser"]
+    DNS["DNS CNAME bloodbank.vikasst.shop"]
+    RenderEdge["Render Cloudflare Edge (SSL / TLS Termination)"]
+    DockerApp["Docker Container (web-based-blood-bank-system)"]
+    Apache["Apache 2.4 Web Server (Port 10000 / $PORT)"]
+    PHPEngine["PHP 8.2 Engine (mysqli / pdo_mysql)"]
+    Database[("MariaDB / MySQL Database\n(Embedded or Cloud RDS / Aiven / Railway)")]
 
-| Variable | Description | Example / Default | Required in Production |
-|---|---|---|:---:|
-| `DB_HOST` | Hostname of the MySQL server | `mysql.railway.internal` or `...aivencloud.com` | **Yes** |
-| `DB_PORT` | Port of the MySQL server | `3306` | No (defaults to `3306`) |
-| `DB_NAME` | Database name | `bloodbank` | **Yes** |
-| `DB_USER` | Database username | `avnadmin` or `root` | **Yes** |
-| `DB_PASS` | Database user password | `your_secret_password` | **Yes** |
-| `APP_ENV` | Application environment | `production` / `development` | No |
-| `PORT` | Listening port for Apache (set by Render) | `10000` or `80` | Automatic on Render |
-
----
-
-## Cloud Database Setup (Aiven / Railway / Cloud MySQL)
-
-The pure database schema without sample personal data is located at [`database/schema.sql`](database/schema.sql).
-
-### Step 1: Provision a Free Cloud MySQL Instance
-Create a free database on any cloud MySQL provider:
-- **Aiven for MySQL:** [https://aiven.io/](https://aiven.io/) (Free tier available)
-- **Railway:** [https://railway.app/](https://railway.app/) (One-click MySQL plugin)
-- **TiDB Cloud Serverless:** [https://tidbcloud.com/](https://tidbcloud.com/) (MySQL-compatible free tier)
-
-### Step 2: Import the Schema
-Using your local terminal or phpMyAdmin / MySQL Workbench:
-```bash
-mysql -h <DB_HOST> -P <DB_PORT> -u <DB_USER> -p <DB_NAME> < database/schema.sql
-```
-
-*(Optional)* If you wish to seed demo accounts for demonstration, also run:
-```bash
-mysql -h <DB_HOST> -P <DB_PORT> -u <DB_USER> -p <DB_NAME> < database/bloodbank.sql
+    User -->|"HTTPS Request"| DNS
+    DNS --> RenderEdge
+    RenderEdge -->|"Proxy"| DockerApp
+    DockerApp --> Apache
+    Apache --> PHPEngine
+    PHPEngine --> Database
 ```
 
 ---
@@ -121,21 +110,21 @@ mysql -h <DB_HOST> -P <DB_PORT> -u <DB_USER> -p <DB_NAME> < database/bloodbank.s
 2. Click **New +** -> **Web Service**.
 3. Connect your repository: `https://github.com/vikast2849/web-based-blood-bank-system`.
 4. Configure the service settings:
-   - **Name:** `web-based-blood-bank`
+   - **Name:** `web-based-blood-bank-system`
    - **Language / Runtime:** `Docker`
    - **Branch:** `main`
    - **Plan:** `Free`
-5. In the **Environment Variables** section, add your database credentials:
-   - `DB_HOST`: *(Your Cloud DB Host)*
-   - `DB_PORT`: `3306` *(or custom port)*
+5. Click **Create Web Service**. The container automatically provisions Apache, MariaDB, and the initial seed database.
+6. *(Optional)* To connect to an external cloud database, add environment variables under **Environment**:
+   - `DB_HOST`: *(Your Cloud DB Host, e.g. from Aiven or Railway)*
+   - `DB_PORT`: `3306`
    - `DB_NAME`: `bloodbank`
    - `DB_USER`: *(Your Cloud DB Username)*
    - `DB_PASS`: *(Your Cloud DB Password)*
    - `APP_ENV`: `production`
-6. Click **Create Web Service**.
 7. Once the build finishes and status turns to **Live**, go to **Settings** -> **Custom Domains**:
    - Add: `bloodbank.vikasst.shop`
-   - Render verifies the existing CNAME record (`bloodbank.vikasst.shop -> web-based-blood-bank.onrender.com`) and automatically provisions the SSL certificate.
+   - Render verifies the DNS record and automatically provisions the SSL certificate.
 
 ---
 
@@ -158,7 +147,7 @@ The launcher automatically:
 
 ```bash
 docker build -t blood-bank-system .
-docker run -p 8080:80 --env-file .env blood-bank-system
+docker run -p 8080:80 blood-bank-system
 ```
 Access at `http://localhost:8080/`.
 

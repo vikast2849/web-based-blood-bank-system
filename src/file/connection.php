@@ -1,9 +1,9 @@
 <?php
 // ---------------------------------------------------------------
 // Database configuration.
-// Defaults suit XAMPP/WAMP (root, empty password). Override with
-// environment variables (DB_HOST, DB_USER, DB_PASS, DB_NAME) when needed,
-// e.g. in Docker.
+// Defaults suit XAMPP/WAMP (root, empty password) and container MariaDB.
+// Override with environment variables (DB_HOST, DB_USER, DB_PASS, DB_NAME)
+// when using an external cloud database (Aiven, RDS, TiDB, etc.).
 // ---------------------------------------------------------------
 // Load .env file from project root if present
 $envFile = dirname(__DIR__, 2) . '/.env';
@@ -22,19 +22,48 @@ if (file_exists($envFile)) {
     }
 }
 
+// Helper to check for placeholder values in environment variables
+if (!function_exists('is_placeholder_db_val')) {
+    function is_placeholder_db_val($val) {
+        if ($val === null || $val === false) return true;
+        $v = trim((string)$val);
+        if ($v === '') return true;
+        if (strpos($v, '<') !== false || strpos($v, '>') !== false) return true;
+        if (strpos($v, 'example.com') !== false) return true;
+        if (strpos($v, 'your-') !== false || strpos($v, 'your_') !== false) return true;
+        return false;
+    }
+}
+
 // Database configuration via environment variables (DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASS)
 // or optional local override file: src/file/config.local.php
 $local = file_exists(__DIR__ . '/config.local.php') ? include __DIR__ . '/config.local.php' : [];
-$servername = $local['host'] ?? (getenv('DB_HOST') ?: 'localhost');
-$port       = (int)($local['port'] ?? (getenv('DB_PORT') ?: 3306));
-$username   = $local['user'] ?? (getenv('DB_USER') ?: 'root');
-$password   = $local['pass'] ?? (getenv('DB_PASS') !== false ? getenv('DB_PASS') : '');
-$dbname     = $local['name'] ?? (getenv('DB_NAME') ?: 'bloodbank');
+
+$envHost = getenv('DB_HOST');
+$envUser = getenv('DB_USER');
+$envPass = getenv('DB_PASS');
+$envName = getenv('DB_NAME');
+$envPort = getenv('DB_PORT');
+
+$servername = $local['host'] ?? (!is_placeholder_db_val($envHost) ? $envHost : '127.0.0.1');
+$port       = (int)($local['port'] ?? (!is_placeholder_db_val($envPort) ? $envPort : 3306));
+$username   = $local['user'] ?? (!is_placeholder_db_val($envUser) ? $envUser : 'root');
+$password   = $local['pass'] ?? (!is_placeholder_db_val($envPass) ? $envPass : '');
+$dbname     = $local['name'] ?? (!is_placeholder_db_val($envName) ? $envName : 'bloodbank');
 
 // Classic error handling (return false) on every PHP version.
 mysqli_report(MYSQLI_REPORT_OFF);
 
 $conn = @new mysqli($servername, $username, $password, $dbname, $port);
+
+// If remote connection failed, fallback to local MariaDB inside container
+if ($conn->connect_error && $servername !== '127.0.0.1' && $servername !== 'localhost') {
+    $fallbackConn = @new mysqli('127.0.0.1', 'root', '', 'bloodbank', 3306);
+    if (!$fallbackConn->connect_error) {
+        $conn = $fallbackConn;
+    }
+}
+
 if ($conn->connect_error) {
     die('Could not connect to MySQL: ' . htmlspecialchars($conn->connect_error));
 }
